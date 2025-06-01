@@ -17,7 +17,7 @@ public class Client {
 
             toSocket.println("Hello from the client");
             String socketResponse = fromSocket.readLine();
-            System.err.println("Response from soceket:" + socketResponse);
+            System.out.println("Response from soceket:" + socketResponse);
             toSocket.close();
             fromSocket.close();
             socket.close();
