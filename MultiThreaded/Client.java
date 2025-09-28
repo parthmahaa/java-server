@@ -1,50 +1,41 @@
 package MultiThreaded;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class Client {
-    
-    public Runnable getRunnable() throws UnknownHostException, IOException {
-        return new Runnable() {
-            @Override
-            public void run() {
-                int port = 5000; // Changed port to match the server
-                try {
-                    InetAddress address = InetAddress.getByName("localhost");
-                    Socket socket = new Socket(address, port);
-                    try (
-                        PrintWriter toSocket = new PrintWriter(socket.getOutputStream(), true);
-                        BufferedReader fromSocket = new BufferedReader(new InputStreamReader(socket.getInputStream()))
-                    ) {
-                        toSocket.println("Hello from Client " + socket.getLocalSocketAddress());
-                        String line = fromSocket.readLine();
-                        System.out.println("Response from Server " + line);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    // The socket will be closed automatically when leaving the try-with-resources block
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-    }
-    
     public static void main(String[] args) {
-        Client client = new Client();
-        for (int i = 0; i < 10; i++) {
-            try {
-                Thread thread = new Thread(client.getRunnable());
-                thread.start();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                return;
+        String hostname = "localhost";
+        int port = 8080;
+
+        System.out.println("Attempting to connect to server at " + hostname + ":" + port);
+
+        try (
+            Socket socket = new Socket(hostname, port);
+            PrintWriter toSocket = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader fromSocket = new BufferedReader(new InputStreamReader(socket.getInputStream()))
+        ) {
+            System.out.println("Connection established. Sending HTTP GET request...");
+            
+            toSocket.println("Host: " + hostname);
+            toSocket.println("Connection: close");
+            toSocket.println(); 
+
+            System.out.println("\n--- Server Response ---");
+            String line;
+            while ((line = fromSocket.readLine()) != null) {
+                System.out.println(line);
             }
+            System.out.println("--- End of Response ---");
+
+        } catch (UnknownHostException e) {
+            System.err.println("Host unknown: " + hostname);
+        } catch (IOException e) {
+            System.err.println("Client Error: Could not connect or communicate with the server. Is it running?");
         }
     }
 }
